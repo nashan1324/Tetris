@@ -116,10 +116,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PlayerControler.cpp" />
     <ClCompile Include="TetrisObject.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PlayerControler.h" />
     <ClInclude Include="TetrisObject.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
