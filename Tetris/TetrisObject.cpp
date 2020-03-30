@@ -35,9 +35,62 @@ void TetrisObject::SetCol(int col) {
 	m_col = col;
 }
 
+//ラインが揃っていたらm_horizlineにプッシュバックする
+bool TetrisObject::HorizLine(bool fixedMino)
+{
+	if (fixedMino) {
+		for (int i = 1; i < 21; ++i) {
+			for (int j = 1; j < 11; ++j) {
+				if (m_obj[i][j] == 0) {
+					break;
+				}
+				else {
+					if (j == 10) {
+						m_horizlines.push_back(i);
+					}
+				}
+			}
+		}
+	}
+	//入っていればtrueを返す
+	if (!m_horizlines.empty()) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void TetrisObject::EraseLine(){
+	for (auto& elem : m_horizlines) {
+		for (int i = 1; i < 11; ++i) {
+			m_obj[elem][i] = 0;
+		}
+	}
+}
+
+void TetrisObject::ShiftLine(){
+	std::vector<int> vec1 = { 1,0,0,0,0,0,0,0,0,0,0,1 };
+	std::vector<int> vec2 = { 1,1,1,1,1,1,1,1,1,1,1,1 };
+	//降順で並び替える
+	std::sort(m_horizlines.begin(), m_horizlines.end(),std::greater<int>());
+	m_obj.erase(m_obj.begin());
+	for (auto& elem : m_horizlines) {
+		m_obj.erase(m_obj.begin() + elem);
+		m_obj.insert(m_obj.begin(), vec1);
+	}
+	m_obj.pop_back();
+	m_obj.push_back(vec2);
+	m_obj.insert(m_obj.begin(), vec1);
+	m_horizlines.clear();
+}
+
 MinoObject::MinoObject(int row, int col, std::vector<std::vector<int>> obj) :
 	TetrisObject(row, col, obj) {
 	m_fixed = false;
+}
+
+MinoObject::~MinoObject(){
 }
 
 void MinoObject::FallMino(){
@@ -46,8 +99,7 @@ void MinoObject::FallMino(){
 }
 
 void MinoObject::CombineMino(TetrisObject & field){
-	ClearPreMino(field);
-	//操作用と落下用で2回衝突チェックしておく
+	//ClearPreMino(field);
 	//CollisionCheck(fieldObj);
 	//FallMino();
 	//CollisionCheck(fieldObj);
@@ -66,6 +118,7 @@ void MinoObject::CombineMino(TetrisObject & field){
 	m_precol = m_col;
 	m_prerowsize = m_obj.size();
 	m_precolsize = m_obj[0].size();
+	m_preobj = m_obj;
 }
 
 //前回のミノの位置を消去する
@@ -75,7 +128,10 @@ void MinoObject::ClearPreMino(TetrisObject & field)
 	//前回のミノの位置を削除
 	for (int i = 0; i < m_prerowsize; ++i) {
 		for (int j = 0; j < m_precolsize; ++j) {
-			fieldObj[m_prerow + i][m_precol + j] = 0;
+			fieldObj[m_prerow + i][m_precol + j] += m_preobj[i][j];
+			if (fieldObj[m_prerow + i][m_precol + j] > 1) {
+				fieldObj[m_prerow + i][m_precol + j] = 0;
+			}
 		}
 	}
 	field.SetObj(fieldObj);
@@ -150,6 +206,10 @@ void MinoObject::CollisionCheck(std::vector<std::vector<int>> fieldObj) {
 		}
 	}
 	else if (m_action == ROTATE) {
+		//Iミノなど右側がはみ出た場合、棒の長さがフィールドに収まるまでマイナスしていく
+		while(m_col + m_obj[0].size() > 11){
+			--m_col;
+		}
 		for (int i = 0; i < m_obj.size(); ++i) {
 			for (int j = 0; j < m_obj[0].size(); ++j) {
 				fieldObj[m_row + i][m_col + j] += m_obj[i][j];

@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 enum EAction {
 	DOWN = 0,
@@ -21,11 +22,17 @@ public:
 	void SetRow(int row);
 	int GetCol();
 	void SetCol(int col);
+	bool HorizLine(bool fixedMino);
+	void EraseLine();
+	void ShiftLine();
 
 protected:
 	int m_row;
 	int m_col;
 	std::vector<std::vector<int>> m_obj;
+
+private:
+	std::vector<int> m_horizlines;
 
 };
 
@@ -33,6 +40,7 @@ protected:
 class MinoObject : public TetrisObject {
 public:
 	MinoObject(int row, int col, std::vector<std::vector<int>> obj);
+	~MinoObject();
 	void FallMino();
 	void CombineMino(TetrisObject& field);
 	void ClearPreMino(TetrisObject& field);
@@ -49,4 +57,5 @@ private:
 	int m_precol;
 	int m_prerowsize;
 	int m_precolsize;
+	std::vector<std::vector<int>> m_preobj;
 };
